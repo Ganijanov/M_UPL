@@ -5,15 +5,27 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.app.schemas import MediaFileCreate
 from src.app.repository import save_media_file
 
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+BASE_UPLOAD_DIR = "uploads"
 
-async def   handle_media_upload(file: UploadFile, db: AsyncSession, allowed_type: str):
+# Маппинг: тип -> папка
+FOLDER_MAP = {
+    "audio": "audio",
+    "image": "pictures",
+    "video": "videos"
+}
+
+# Создаём все папки заранее
+for folder in FOLDER_MAP.values():
+    os.makedirs(os.path.join(BASE_UPLOAD_DIR, folder), exist_ok=True)
+
+async def handle_media_upload(file: UploadFile, db: AsyncSession, allowed_type: str):
     if not file.content_type.startswith(allowed_type):
         raise HTTPException(status_code=400, detail=f"Ожидается тип: {allowed_type}/*")
 
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
-    
+    # Выбираем папку в зависимости от типа
+    subfolder = FOLDER_MAP.get(allowed_type, "other")
+    file_path = os.path.join(BASE_UPLOAD_DIR, subfolder, file.filename)
+
     async with aiofiles.open(file_path, "wb") as out_file:
         content = await file.read()
         await out_file.write(content)
