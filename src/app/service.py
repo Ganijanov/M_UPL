@@ -5,9 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.app.schemas import MediaFileCreate
 from src.app.repository import save_media_file
 
+
+
 BASE_UPLOAD_DIR = "uploads"
 
-# Маппинг: тип -> папка
 FOLDER_MAP = {
     "audio": "audio",
     "image": "pictures",
